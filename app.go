@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sort"
 	"sync"
 	"time"
@@ -40,6 +42,13 @@ type Result struct {
 
 // CheckFileSizeConcurrent 并发检查 URL 文件大小
 func (a *App) CheckFileSizeConcurrent(urls []string, concurrency int, outputFile string) ([]Result, error) {
+	// 动态获取当前用户的桌面路径
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("获取用户主目录失败: %w", err)
+	}
+	outputPath := filepath.Join(homeDir, "Desktop", outputFile)
+
 	// 创建可取消的 context
 	ctx, cancel := context.WithCancel(context.Background())
 	a.cancelFunc = cancel // 保存取消函数
@@ -89,7 +98,7 @@ func (a *App) CheckFileSizeConcurrent(urls []string, concurrency int, outputFile
 	})
 
 	// 写入 Excel 文件
-	if err := writeToExcel(results, outputFile); err != nil {
+	if err := writeToExcel(results, outputPath); err != nil {
 		return nil, err
 	}
 
@@ -159,7 +168,7 @@ func parseSize(sizeStr string) int64 {
 }
 
 // writeToExcel 将结果写入 Excel 文件
-func writeToExcel(results []Result, outputFile string) error {
+func writeToExcel(results []Result, outputPath string) error {
 	excel := excelize.NewFile()
 	sheetName := "Results"
 	excel.SetSheetName(excel.GetSheetName(0), sheetName)
@@ -172,7 +181,7 @@ func writeToExcel(results []Result, outputFile string) error {
 		excel.SetCellValue(sheetName, fmt.Sprintf("B%d", row), result.Size)
 	}
 
-	if err := excel.SaveAs(outputFile); err != nil {
+	if err := excel.SaveAs(outputPath); err != nil {
 		return err
 	}
 
