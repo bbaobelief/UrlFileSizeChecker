@@ -17,9 +17,9 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "UrlFileSizeChecker",
-		Width:  1024,
-		Height: 768,
+		Title:  "URL文件大小检查",
+		Width:  800,
+		Height: 330,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
